@@ -99,7 +99,7 @@ void main_loop()
 //  correctly
 static void change_led_state(U8 sender, void* parameter, U8 remote_param, U8 UNUSED1, U8 UNUSED2, U8 UNUSED3)
 {
-	HAL_GPIO_WritePin(BUTTON_GPIO_Port, GRN_LED_Pin, !!remote_param);
+	HAL_GPIO_WritePin(GRN_LED_GPIO_Port, GRN_LED_Pin, !!remote_param);
 	return;
 }
 
