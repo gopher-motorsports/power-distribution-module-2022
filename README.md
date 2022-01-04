@@ -1,5 +1,3 @@
-# gcan-boiler-plate
+# power-distribution-module-2022
  
-Repo that houses the code to go along with this tutorial:
-https://docs.google.com/document/d/14Rd_TaEqicGGeaOFxkkbyYZbN72bifNnCOgo42-tnhI/edit?usp=sharing
-
+Repo that houses the code for the 2022 Gopher Motorsports PDM
