@@ -1,0 +1,7 @@
+channel_control.c:12:6:setAllChannelDiagnostics	0	static
+channel_control.c:16:4:getChannelSupplyVoltage	0	static
+channel_control.c:20:4:getChannelTemperature	0	static
+channel_control.c:24:4:getChannelCurrent	0	static
+channel_control.c:28:9:getChannelHwFault	0	static
+channel_control.c:32:9:getChannelHwOpenLoad	0	static
+channel_control.c:36:6:clearAllChannelHwFaults	0	static

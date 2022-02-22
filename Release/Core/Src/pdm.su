@@ -1,0 +1,12 @@
+pdm.c:35:6:main_loop	0	static
+pdm.c:43:9:updateAllChannels	0	static
+pdm.c:50:11:checkFuse	0	static
+pdm.c:57:6:updateFuse	0	static
+pdm.c:64:9:checkHwFault	0	static
+pdm.c:71:4:checkBrownOut	0	static
+pdm.c:78:5:filterCurrent	0	static
+pdm.c:85:6:brownOutPrevention	0	static
+pdm.c:92:4:checkBrownOutStatus	0	static
+pdm.c:99:6:openLoadProtection	0	static
+pdm.c:106:9:checkOpenLoad	0	static
+pdm.c:113:9:checkValidChannel	0	static

@@ -1,0 +1,4 @@
+GopherCAN_ring_buffer.c:18:6:init_buffer	0	static
+GopherCAN_ring_buffer.c:29:6:remove_from_front	8	static
+GopherCAN_ring_buffer.c:49:6:add_message_to_back	16	static
+GopherCAN_ring_buffer.c:69:6:add_message_by_highest_prio	24	static
