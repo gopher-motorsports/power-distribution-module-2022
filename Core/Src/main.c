@@ -646,20 +646,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, DIO0_Pin|DIO1_Pin|DIO2_Pin|DIO3_Pin
-                          |DIO4_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, DIO5_Pin|EN3_Pin|EN7_Pin|EN2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, EN13_Pin|EN12_Pin|EN19_Pin|EN18_Pin
@@ -675,21 +667,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, EN8_Pin|EN6_Pin|EN9_Pin|EN1_Pin
                           |EN0_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : DIO0_Pin DIO1_Pin DIO2_Pin DIO3_Pin
-                           DIO4_Pin */
-  GPIO_InitStruct.Pin = DIO0_Pin|DIO1_Pin|DIO2_Pin|DIO3_Pin
-                          |DIO4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : DIO5_Pin EN3_Pin EN7_Pin EN2_Pin */
-  GPIO_InitStruct.Pin = DIO5_Pin|EN3_Pin|EN7_Pin|EN2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, EN3_Pin|EN7_Pin|EN2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : SHAKE_INT_Pin */
   GPIO_InitStruct.Pin = SHAKE_INT_Pin;
@@ -729,6 +708,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : EN3_Pin EN7_Pin EN2_Pin */
+  GPIO_InitStruct.Pin = EN3_Pin|EN7_Pin|EN2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
@@ -747,7 +733,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 //			ring_buffer_get(buf, 0), ring_buffer_get(buf, 1), ring_buffer_get(buf, 2), ring_buffer_get(buf, 3),
 //			ring_buffer_get(buf, 4), ring_buffer_get(buf, 5), ring_buffer_get(buf, 6), ring_buffer_get(buf, 7),
 //			ring_buffer_get(buf, 8), ring_buffer_get(buf, 9), ring_buffer_passive_average(chnl_buf), __HAL_TIM_GET_COUNTER(&htim14) - timer_val);
-//	log_uart(&huart3, msg_buf, 80);
+//	print_uart(&huart3, msg_buf, 80);
 //	num_buf_writes++;
 //	timer_val = __HAL_TIM_GET_COUNTER(&htim14);
 }

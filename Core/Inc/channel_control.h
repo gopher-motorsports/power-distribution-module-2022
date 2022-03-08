@@ -10,9 +10,9 @@
 
 #include "base_types.h"
 
-#define SEL1_MASK  0x01
-#define SEL2_MASK  0x02
-#define EN_MASK    0x04
+#define SEL1_MASK   0x01
+#define SEL2_MASK   0x02
+#define DIA_EN_MASK 0x04
 
 typedef enum {
 	DIAGNOSTICS_DISABLED = 0b000,

@@ -14,15 +14,24 @@
 #include <stdlib.h>
 #include <math.h>
 
-// TODO: Detect external overrides
+// TODO: Add volatile modifier to DMA ADC array
+// TODO: Look for maxed out ADC in channel interrupt to detect faults that overlap
+//       between different ticks
+// TODO: Create 3 overlapping circular buffers with 1 main buffer and two
+//       other buffers that point to the first and second half of the buffer
+//       to create a ping pong buffer
+// TODO: Verify and update all documentation
+// TODO: Statically allocate memory and delete free methods
+// TODO: Deal with integrator logic when hardware fault triggers
+// TODO: Detect external overrides of manually controlled pins (i.e. fuel pump, spark, etc.)
 // TODO: Try to increase ADC sample time to decrease noise instead of filtering so much
-// TODO: Comment functions/stuff
+// TODO: Document functions/stuff
 // TODO: Add more header files and update/verify header files and prototypes
 // TODO: Add malloc null checks and fault handling
 // TODO: Implement channel utility functions/structs
 // TODO: Implement software overcurrent protection
 // TODO: Implement hardware timer functionality for diagnostic state switching
-//           (discarding old ADC measurements) and also have some sort of queue
+//       (discarding old ADC measurements) and also have some sort of queue
 // TODO: Implement fault transmission over CAN to driver display
 // TODO: Implement cooling model
 // TODO: Implement board condition sensing (I2C)
@@ -36,6 +45,7 @@
 // TODO: Hardware open-load on startup and whenever turning on channels
 // TODO: Implement software and hardware open-load protection
 // TODO: Write data filter algorithm
+// TODO: Go over header files and prune code
 
 U16RingBuffer* init_adc_dma(ADC_HandleTypeDef* hadc, U16 buffer_size) {
 	U16RingBuffer* adc_buf = init_ring_buffer(buffer_size);
@@ -46,8 +56,8 @@ U16RingBuffer* init_adc_dma(ADC_HandleTypeDef* hadc, U16 buffer_size) {
 	return adc_buf;
 }
 
-void log_uart(UART_HandleTypeDef huart, char* msg, U16 len) {
-	U8 msg_buf[len];
+void print_uart(UART_HandleTypeDef huart, char* msg) {
+	U8 msg_buf[strlen(msg)+1];
 	strcpy((char*)msg_buf, msg);
 	HAL_UART_Transmit(&huart, msg_buf, strlen((char*)msg_buf), HAL_MAX_DELAY);
 }
@@ -90,6 +100,7 @@ boolean check_hw_fault(U8 channel) {
 }
 
 /*
+ *
  *
  */
 U8 check_brown_out(U8 channel) {

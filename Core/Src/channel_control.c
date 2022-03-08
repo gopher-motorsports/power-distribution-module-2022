@@ -9,7 +9,7 @@
 #include "channel.h"
 #include "config.h"
 #include "base_types.h"
-#include <stdlib.h>
+#include "freertos.h"
 
 U8 num_channels;
 Channel** channels;
@@ -17,7 +17,7 @@ Channel** channels;
 void init_channels() {
 	channels = (Channel**)pvPortMalloc(sizeof(Channel*)*NUM_CHANNELS);
 	for(U8 i = 0; i < NUM_CHANNELS; i++) {
-		channels[i] = init_channel();
+		channels[i] = init_channel(i);
 	}
 }
 
@@ -29,7 +29,7 @@ void init_channels() {
 void set_all_channel_diagnostics(DiagnosticState state) {
 	HAL_GPIO_WritePin(SEL1_PORT, SEL1_PIN, state | SEL1_MASK);
 	HAL_GPIO_WritePin(SEL2_PORT, SEL2_PIN, state | SEL2_MASK);
-	HAL_GPIO_WritePin(DIA_EN_PORT, DIA_EN_PIN, state | EN_MASK);
+	HAL_GPIO_WritePin(DIA_EN_PORT, DIA_EN_PIN, state | DIA_EN_MASK);
 }
 
 

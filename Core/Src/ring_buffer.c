@@ -6,6 +6,7 @@
  */
 
 #include "ring_buffer.h"
+#include "freertos.h"
 
 /**
  * Allocates and initializes a new ring buffer
@@ -42,6 +43,18 @@ void ring_buffer_append(U16RingBuffer* buffer, U16 element) {
 }
 
 /**
+ * Appends all elements in one ring buffer to the end of another ring buffer
+ *
+ * @param buffer1 The buffer to append the items to that will be modified
+ * @param buffer2 The buffer from which the items will be appended
+ */
+void ring_buffer_append_buffer(U16RingBuffer* buffer1, U16RingBuffer* buffer2) {
+	for(U16 i = 0; i < buffer2->size; i++) {
+		ring_buffer_append(buffer1, ring_buffer_get(buffer2, i));
+	}
+}
+
+/**
  * Calculates the average assuming the internal array of the ring
  * buffer has not been manually modified (runs in O(1))
  *
@@ -59,12 +72,34 @@ U16 ring_buffer_passive_average(U16RingBuffer* buffer) {
  * @param buffer The buffer on which to calculate the average
  * @return The average of the entire array in teh buffer
  * @note This function will calculate the average on the entire buffer,
- * meainng the entire array of the buffer, whether or not it has been filled
+ * meaning the entire array of the buffer, whether or not it has been filled
  * using ring_buffer_append.
  */
 U16 ring_buffer_entire_average(U16RingBuffer* buffer) {
 	return ring_buffer_range_average(buffer, 0, buffer->size);
 }
+
+
+/**
+ * Averages the first half of a buffer (inclusive of the middle element)
+ *
+ * @param buffer The buffer to average
+ * @return The average of the first half of the specified buffer
+ */
+U16 ring_buffer_first_half_average(U16RingBuffer* buffer) {
+	return ring_buffer_range_average(buffer, 0, (buffer->size/2) + (buffer->size % 2));
+}
+
+/**
+ * Averages the second half of a buffer (exclusive of the middle element)
+ *
+ * @param buffer The buffer to average
+ * @return The average of the second half of the specified buffer
+ */
+U16 ring_buffer_second_half_average(U16RingBuffer* buffer) {
+	return ring_buffer_range_average(buffer, (buffer->size/2) + (buffer->size % 2), buffer->size);
+}
+
 
 /**
  * Calculates the average of a ring buffer over a specified range.  Works even
@@ -84,7 +119,7 @@ U16 ring_buffer_range_average(U16RingBuffer* buffer, U16 start, U16 stop) {
 }
 
 /**
- * Retrivies an element in a ring buffer
+ * Retrieves an element in a ring buffer
  *
  * @param buffer The relevant buffer
  * @param index The index of the item to retrieve
@@ -142,28 +177,6 @@ U16RingBuffer* ring_buffer_slice(U16RingBuffer* buffer, U16 start, U16 end) {
 	}
 	return new_buffer;
 }
-
-
-/**
- * Slices the first half of a buffer (inclusive of the middle element)
- *
- * @param buffer The buffer to slice
- * @ return The first half of the specified buffer
- */
-U16RingBuffer* ring_buffer_first_half(U16RingBuffer* buffer) {
-	return ring_buffer_slice(buffer, 0, (buffer->size/2) + (buffer->size % 2));
-}
-
-/**
- * Slices the second half of a buffer (exclusive of the middle element)
- *
- * @param buffer The buffer to slice
- * @ return The first half of the specified buffer
- */
-U16RingBuffer* ring_buffer_second_half(U16RingBuffer* buffer) {
-	return ring_buffer_slice(buffer, (buffer->size/2) + (buffer->size % 2), buffer->size);
-}
-
 
 /**
  * Clears a ring buffer, removing all elements.  This method does not free the
