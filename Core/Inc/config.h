@@ -66,6 +66,13 @@
 // The value of the SNS pin that indicates a fault
 #define SNS_FAULT_HIGH_CURRENT_MILLIAMPERES 6
 
+// From https://www.ti.com/lit/ds/symlink/tps1ha08-q1.pdf
+
+#define T_SNS_EN_ON  180
+#define T_SNS_EN_OFF 700
+#define T_SNS_DIA_ON 70
+#define T_SNS_DIA_SW 60
+
 // ===================================
 // || Other Configuration Constants ||
 // ===================================
@@ -76,6 +83,29 @@
 // Maximum ADC Voltage
 #define MAX_ADC_VOLTAGE 3.3
 
+// Voltage and temperature read rates, current is logged
+// on all other task calls
+#define VOLTAGE_RATE_HZ 10
+#define TEMP_RATE_HZ 10
+
+// How long the fuse integrates current measurements
+#define FUSE_SAMPLE_PERIOD_MS 1
+
+#define MAX_FUSE_RETRIES 10
+#define FUSE_RETRY_DELAY_MS 50
+
+#define NUM_CHANNELS 20
+
+#define ADC1_NUM_PINS 10
+#define ADC3_NUM_PINS 10
+
+#define ADC1_BUF_LEN CHANNEL_ADC_BUFFER_SIZE*ADC1_NUM_PINS
+#define ADC3_BUF_LEN CHANNEL_ADC_BUFFER_SIZE*ADC3_NUM_PINS
+
+#define VOLTAGE_PERIOD_TICKS configTICK_RATE_HZ/VOLTAGE_RATE_HZ
+#define TEMP_PERIOD_TICKS configTICK_RATE_HZ/TEMP_RATE_HZ
+
+
 // The size of the ADC buffer for each channel
 #define CHANNEL_ADC_BUFFER_SIZE 100
 
@@ -83,35 +113,8 @@
 // Ideally, this buffer should take just about one tick to fill up, so that by
 // the next tick all previous measurements have been overwritten and there is
 // no bleed-over from one tick to the next
-#define CHANNEL_FILTERED_ADC_BUFFER_SIZE 1000
+#define CHANNEL_FILTERED_BUFFER_SIZE 1000
 
-// Voltage and temperature read rates, current is logged
-// on all other task calls
-#define VOLTAGE_RATE_HZ 10
-#define TEMP_RATE_HZ 10
-
-// How long the fuse integrates current measurements
-#define FUSE_INTEGRATION_LENGTH_MS 5000
-#define FUSE_SAMPLE_PERIOD_MS 1
-#define FUSE_DOUBLE_BLOW_TIME_MS 1000
-// https://www.desmos.com/calculator/bvcedakatf
-// (-1)/(FUSE_DOUBLE_BLOW_TIME_MS/FUSE_SAMPLE_PERIOD_MS) simplified
-#define FUSE_DECAY_CONSTANT pow(2.0, (double)(-FUSE_SAMPLE_PERIOD_MS/FUSE_DOUBLE_BLOW_TIME_MS))
-// 1/(Total sum of sequence) = 1.0/(1.0/(FUSE_DECAY_CONSTANT - 1.0))
-#define FUSE_INTEGRATOR_LIMIT_SCALAR (1.0 - FUSE_DECAY_CONSTANT)
-
-#define MAX_FUSE_RETRIES 10
-#define FUSE_RETRY_DELAY_MS 10
-
-#define CONTINUOUS_CURRENT_TIME_MS 1000
-
-#define NUM_CHANNELS 20
-
-#define ADC1_BUF_LEN CHANNEL_ADC_BUFFER_SIZE*ADC1_NUM_PINS
-#define ADC3_BUF_LEN CHANNEL_ADC_BUFFER_SIZE*ADC1_NUM_PINS
-
-#define VOLTAGE_PERIOD_TICKS configTICK_RATE_HZ/VOLTAGE_RATE_HZ
-#define TEMP_PERIOD_TICKS configTICK_RATE_HZ/TEMP_RATE_HZ
-
+#define MILLIAMPS_PER_AMP 1000
 
 #endif /* INC_CONFIG_H_ */

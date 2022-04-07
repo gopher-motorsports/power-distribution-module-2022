@@ -22,6 +22,21 @@ U16RingBuffer* init_ring_buffer(U16 size) {
 	return buffer;
 }
 
+
+/**
+ * Initializes a new ring buffer at a given memory address
+ * @param size The size of the the new buffer
+ * @param buffer A pointer to the buffer to initialize
+ * @param array A pointer to the memory address to the buffer array
+ */
+void init_ring_buffer_static(U16 size, U16RingBuffer* buffer, U16* array) {
+	buffer->head = 0;
+	buffer->item_count = 0;
+	buffer->size = size;
+	buffer->sum = 0;
+	buffer->array = array;
+}
+
 /**
  * Appends a new element to a ring buffer
  *
@@ -186,11 +201,7 @@ U16RingBuffer* ring_buffer_slice(U16RingBuffer* buffer, U16 start, U16 end) {
  * @param buffer The buffer to clear
  */
 void ring_buffer_clear(U16RingBuffer* buffer) {
-	for(U16 i = 0; i < buffer->item_count; i++) {
-		buffer->array[i] = 0;
-	}
 	buffer->item_count = 0;
-	buffer->head = 0;
 	buffer->sum = 0;
 }
 

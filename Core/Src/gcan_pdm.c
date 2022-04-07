@@ -48,11 +48,7 @@ void init_gcan(CAN_HandleTypeDef* hcan_ptr)
 void gcan_process_buffer()
 {
 	// Handle each RX message in the buffer
-	if (service_can_rx_buffer())
-	{
-		// An error has occurred
-		// TODO: Handle error
-	}
+	service_can_rx_buffer();
 
 	// Handle the transmission hardware for each CAN bus
 	service_can_tx_hardware(example_hcan);

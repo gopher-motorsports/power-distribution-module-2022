@@ -6,6 +6,7 @@
  */
 
 #include "config.h"
+#include "ring_buffer.h"
 
 
 // ===========================================
@@ -42,4 +43,13 @@ const GPIO_TypeDef* SWITCH_EN_PORTS[] = { EN0_GPIO_Port, EN1_GPIO_Port, EN2_GPIO
 		EN6_GPIO_Port, EN7_GPIO_Port, EN8_GPIO_Port, EN9_GPIO_Port,/* EN10_GPIO_Port, */EN11_GPIO_Port, EN12_GPIO_Port, EN13_GPIO_Port,
 		/*EN14_GPIO_Port, */EN15_GPIO_Port, EN16_GPIO_Port, EN17_GPIO_Port, EN18_GPIO_Port, EN19_GPIO_Port };
 
-const U16 FUSE_RATING_MILLIAMPERE[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+// The rating of each of the fuses in milliamperes
+const U16 FUSE_RATING[]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+// The peak current
+const U16 FUSE_PEAK_CURRENT[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+const U16 FUSE_PEAK_TIME[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+const U16 FUSE_FAST_BLOW_RATING[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+const S16 FUSE_RETRIES[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };

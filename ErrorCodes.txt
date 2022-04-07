@@ -1,0 +1,20 @@
+Fault Light
+
+Hard Fault    - - 
+Bus Fault     ...-
+Memory Fault  ----
+Usage Fault   .-.-
+
+Status Light
+
+STM Init Fail   .-.-
+CAN Init Error  - - 
+GCAN CB Error   ...-
+FreeRTOS Error  ....
+Brownout        ..--
+
+
+ADC Light
+
+ON  - After been off for XXXX ADC Interrupts
+OFF - After updated XXXX times by update function
