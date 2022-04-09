@@ -70,8 +70,8 @@
 
 #define T_SNS_EN_ON  180
 #define T_SNS_EN_OFF 700
-#define T_SNS_DIA_ON 70
 #define T_SNS_DIA_SW 60
+#define T_SNS_MARGIN 20
 
 // ===================================
 // || Other Configuration Constants ||
@@ -107,13 +107,13 @@
 
 
 // The size of the ADC buffer for each channel
-#define CHANNEL_ADC_BUFFER_SIZE 100
+#define CHANNEL_ADC_BUFFER_SIZE 50
 
 // The size of each channel's filtered ADC buffer
 // Ideally, this buffer should take just about one tick to fill up, so that by
 // the next tick all previous measurements have been overwritten and there is
 // no bleed-over from one tick to the next
-#define CHANNEL_FILTERED_BUFFER_SIZE 1000
+#define CHANNEL_FILTERED_BUFFER_SIZE 350
 
 #define MILLIAMPS_PER_AMP 1000
 

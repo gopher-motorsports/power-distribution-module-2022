@@ -12,6 +12,7 @@ CAN Init Error  - -
 GCAN CB Error   ...-
 FreeRTOS Error  ....
 Brownout        ..--
+Kernel Error    . . 
 
 
 ADC Light

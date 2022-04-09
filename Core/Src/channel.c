@@ -12,15 +12,18 @@
 #include "base_types.h"
 #include <math.h>
 
-U32 U32_min(U32 a, U32 b);
-
-extern U16 FUSE_FAST_BLOW_RATING[];
-extern U16 FUSE_RATING[];
-extern GPIO_TypeDef* SWITCH_EN_PORTS[];
-extern U16 SWITCH_EN_PINS[];
-
-void init_channel(Channel* channel, U8 id, U32* time_micros, DiagnosticState* diagnostic_state,
-		U16 max_retries, U32 max_integrator, U16 max_current, U16 rating, U16 retry_delay) {
+void init_channel(
+		Channel* channel,
+		U8 id,
+		volatile U32* time_micros,
+		DiagnosticState* diagnostic_state,
+		U16 max_retries,
+		U32 max_integrator,
+		U16 max_current,
+		U16 rating,
+		U16 retry_delay,
+		U16 en_pin,
+		GPIO_TypeDef* en_port) {
 	// TODO: Update
 	channel->id = id;
 
@@ -29,16 +32,20 @@ void init_channel(Channel* channel, U8 id, U32* time_micros, DiagnosticState* di
 	channel->hw_switch.set = SWITCH_DISABLED;
 	channel->hw_switch.state = SWITCH_DISABLED;
 	channel->hw_switch.i_sns = 0;
+	channel->hw_switch.no_load = TRUE;
+	channel->hw_switch.en_pin = en_pin;
+	channel->hw_switch.en_port = en_port;
 
 	channel->timing.time_micros = time_micros;
 	channel->timing.micros_last = 0;
 	channel->timing.micros_left = 0;
-	channel->timing.transitioning = FALSE;
+	channel->timing.invalid = FALSE;
 
 	channel->fuse.state = FUSE_ACTIVE;
 	channel->fuse.retries = 0;
 	channel->fuse.max_retries = max_retries;
 	channel->fuse.retry_timer_ms = 0;
+	channel->fuse.retry_delay_ms = retry_delay;
 	channel->fuse.integrator = 0;
 	channel->fuse.max_integrator = max_integrator;
 	channel->fuse.max_current = max_current;
@@ -53,23 +60,15 @@ void init_channel(Channel* channel, U8 id, U32* time_micros, DiagnosticState* di
 	channel->adc.adc_reading = 0;
 
 	channel->readings.current = 0;
-	channel->readings.temp = 0;
+	channel->readings.temp = 0.0;
 	channel->readings.voltage = 0;
 }
 
-
-/**
- *
- */
-void channel_adc_interrupt(Channel* channel, U16 measurement, boolean first_half) {
-	// TODO: Implement ping pong with first_half
-	if(!channel->timing.transitioning) {
+// TODO: Pass ADC buffer instead of measurement?
+void channel_adc_interrupt(Channel* channel, U16 measurement) {
+	if(!channel->timing.invalid) {
 		update_channel_fuse_interrupt(channel, measurement);
 		ring_buffer_append(&channel->adc.filtered_adc_buffer, measurement);
-	} else {
-		if(channel->adc.filtered_adc_buffer.item_count > 0) {
-			ring_buffer_clear(&channel->adc.filtered_adc_buffer);
-		}
 	}
 }
 
@@ -131,7 +130,7 @@ void channel_blow_fuse(Channel* channel) {
 	if(channel->fuse.state != FUSE_ACTIVE) {
 		return;
 	}
-	if(channel->fuse.retries < channel->fuse.max_retries || channel->fuse.max_retries < 0) {
+	if(channel->fuse.retries < channel->fuse.max_retries|| channel->fuse.max_retries < 0) {
 		channel->fuse.state = FUSE_AUTO_RETRY;
 	} else {
 		channel->fuse.state = FUSE_DISABLED;
@@ -152,6 +151,12 @@ void channel_blow_fuse(Channel* channel) {
 boolean update_channel_read_buffer(Channel* channel) {
 	// Store the ADC reading
 	channel->adc.adc_reading = ring_buffer_passive_average(&channel->adc.filtered_adc_buffer);
+
+	// Delay for 1us so we can clear the buffer
+	update_channel_timing(channel, 1);
+
+	// Clear the buffer
+	ring_buffer_clear(&channel->adc.filtered_adc_buffer);
 
 	channel->hw_switch.i_sns = calculate_i_sns(channel->adc.adc_reading);
 
@@ -192,11 +197,11 @@ void update_channel_switch(Channel* channel) {
 
 	// Make sure we checked open load before we enable the switch
 	if(!channel->hw_switch.state &&channel->hw_switch.set && !channel->hw_switch.no_load) {
-		HAL_GPIO_WritePin(SWITCH_EN_PORTS[channel->id], SWITCH_EN_PINS[channel->id], SET);
+		HAL_GPIO_WritePin(channel->hw_switch.en_port, channel->hw_switch.en_pin, SET);
 		channel->hw_switch.state = SWITCH_ENABLED;
 		update_channel_timing(channel, T_SNS_EN_ON);
 	} else if(channel->hw_switch.state && !channel->hw_switch.set) {
-		HAL_GPIO_WritePin(SWITCH_EN_PORTS[channel->id], SWITCH_EN_PINS[channel->id], RESET);
+		HAL_GPIO_WritePin(channel->hw_switch.en_port, channel->hw_switch.en_pin, RESET);
 		channel->hw_switch.state = SWITCH_DISABLED;
 		update_channel_timing(channel, T_SNS_EN_OFF);
 	}
@@ -208,17 +213,30 @@ void update_channel_switch(Channel* channel) {
  * @param delay_micros A transition delay in microseconds
  */
 void update_channel_timing(Channel* channel, U32 delay_micros) {
+	// Set the timing to invalid so that the interrupt doesn't mess with
+	// anything while we're updating stuff
+	channel->timing.invalid = TRUE;
+
 	// time_micros - time in micros
 	U32 time_micros = *channel->timing.time_micros;
 	U32* micros_left = &channel->timing.micros_left;
-	U32* micros_last = &channel->timing.micros_left;
+	U32* micros_last = &channel->timing.micros_last;
+
+	// Add a little bit of extra time in case an interrupt gets called or something
+	delay_micros += T_SNS_MARGIN;
+
+	boolean was_invalid = *micros_left > 0;
 
 	*micros_left -= time_micros - *micros_last;
 	*micros_left = (*micros_left > delay_micros) ? *micros_left : delay_micros;
 	*micros_last = time_micros;
 	*micros_left = *micros_left < 0 ? 0 : *micros_left;
 
-	channel->timing.transitioning = *micros_left <= 0;
+	if(was_invalid && *micros_left == 0) {
+		ring_buffer_clear(&channel->adc.filtered_adc_buffer);
+	}
+
+	channel->timing.invalid = *micros_left > 0;
 }
 
 boolean update_hw_open_load(Channel* channel) {

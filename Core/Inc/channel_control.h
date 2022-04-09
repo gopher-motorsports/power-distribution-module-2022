@@ -11,7 +11,9 @@
 #include "base_types.h"
 #include "channel.h"
 
-void set_all_channel_diagnostics(DiagnosticState state);
+void init_channels(Channel* channels, DiagnosticState* diagnostic_state, volatile U32* time_micros);
+void update_channels(Channel* channels, U8 num_channels);
+void set_all_channel_diagnostics(Channel* channels, DiagnosticState state);
 U16 get_channel_supply_voltage(Channel* channels, U8 id);
 U16 get_channel_temperature(Channel* channels, U8 id);
 U16 get_channel_current(Channel* channels, U8 id);

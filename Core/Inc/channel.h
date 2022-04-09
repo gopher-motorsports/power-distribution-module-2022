@@ -15,17 +15,15 @@
 #define SEL1_MASK       0x01
 #define SEL2_MASK       0x02
 #define DIA_EN_MASK     0x04
-#define TRANSITION_MASK 0x08
 
 typedef enum {
-	DIAGNOSTICS_DISABLED   = 0b0000,
-	DIAGNOSTICS_CURRENT    = 0b0100,
-	DIAGNOSTICS_TEMP       = 0b0101,
-	DIAGNOSTICS_VOLTAGE    = 0b0111,
+	DIAGNOSTICS_DISABLED   = 0b000,
+	DIAGNOSTICS_CURRENT    = 0b100,
+	DIAGNOSTICS_TEMP       = 0b101,
+	DIAGNOSTICS_VOLTAGE    = 0b111,
 	// DIAGNOSTICS_CURRENT and DIAGNOSTICS_OL_STB are the same,
 	// they are determined by switch enable
-	DIAGNOSTICS_OL_STB     = 0b0100,
-	DIAGNOSTICS_TRANSITION = 0b1000
+	DIAGNOSTICS_OL_STB     = 0b100
 } DiagnosticState;
 
 typedef enum {
@@ -33,13 +31,8 @@ typedef enum {
 } FuseState;
 
 typedef enum {
-	SWITCH_ENABLED, SWITCH_DISABLED
+	SWITCH_DISABLED, SWITCH_ENABLED
 } SwitchState;
-
-
-// TODO: Structs in structs
-// TODO: Add all parameters as fields in channel struct
-
 
 typedef struct {
 	// The channel number, or "id"
@@ -58,21 +51,25 @@ typedef struct {
 		SwitchState state;
 		// SNS Current
 		U16 i_sns;
-		// If there is no load conneted to the switch
+		// If there is no load connector to the switch
 		boolean no_load;
+		// Switch enable pin
+		U16 en_pin;
+		// Switch enable port
+		GPIO_TypeDef* en_port;
 	} hw_switch;
 
 
 
-	struct Timimng {
+	struct Timing {
 		// A pointer to a integer representing the time in microseconds
-		U32* time_micros;
+		volatile U32* time_micros;
 		// Last recorded time in microseconds
 		U32 micros_last;
 		// The time left in microseconds before transitioning is done
 		U32 micros_left;
-		// If the switch is transitioning state from disabled/enabled
-		boolean transitioning;
+		// If ADC measurements are valid or not
+		boolean invalid;
 	} timing;
 
 
@@ -146,9 +143,19 @@ typedef struct {
 // Function to run every tick that updates both downstream buffers, and
 // updates all states, checks for hardware faults, updates fuse state, updates, etc.
 
-void init_channel(Channel* channel, U8 id, U32* time_micros, DiagnosticState* diagnostic_state,
-		U16 max_retries, U32 max_integrator, U16 max_current, U16 rating, U16 retry_delay);
-void channel_adc_interrupt(Channel* channel, U16 measurement, boolean first_half);
+void init_channel(
+		Channel* channel,
+		U8 id,
+		volatile U32* time_micros,
+		DiagnosticState* diagnostic_state,
+		U16 max_retries,
+		U32 max_integrator,
+		U16 max_current,
+		U16 rating,
+		U16 retry_delay,
+		U16 en_pin,
+		GPIO_TypeDef* en_port);
+void channel_adc_interrupt(Channel* channel, U16 measurement);
 void update_channel_fuse_interrupt(Channel* channel, U16 measurement);
 void update_channel(Channel* channel);
 void update_channel_fuse(Channel* channel);

@@ -116,6 +116,8 @@ void Error_Handler(void);
 #define EN17_GPIO_Port GPIOB
 #define EN16_Pin GPIO_PIN_15
 #define EN16_GPIO_Port GPIOB
+#define EN10_Pin GPIO_PIN_11
+#define EN10_GPIO_Port GPIOD
 #define DIA_EN_Pin GPIO_PIN_13
 #define DIA_EN_GPIO_Port GPIOD
 #define SEL2_Pin GPIO_PIN_15
@@ -128,6 +130,8 @@ void Error_Handler(void);
 #define SEL1_GPIO_Port GPIOG
 #define EN15_Pin GPIO_PIN_6
 #define EN15_GPIO_Port GPIOG
+#define EN14_Pin GPIO_PIN_7
+#define EN14_GPIO_Port GPIOC
 #define EN8_Pin GPIO_PIN_9
 #define EN8_GPIO_Port GPIOA
 #define EN6_Pin GPIO_PIN_10
@@ -148,8 +152,12 @@ void Error_Handler(void);
 #define EN5_GPIO_Port GPIOD
 #define EN4_Pin GPIO_PIN_1
 #define EN4_GPIO_Port GPIOD
-#define BLUE_LED_Pin GPIO_PIN_7
-#define BLUE_LED_GPIO_Port GPIOB
+#define LED_ADC_Pin GPIO_PIN_9
+#define LED_ADC_GPIO_Port GPIOG
+#define STATUS_LED_Pin GPIO_PIN_10
+#define STATUS_LED_GPIO_Port GPIOG
+#define FAULT_LED_Pin GPIO_PIN_11
+#define FAULT_LED_GPIO_Port GPIOG
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

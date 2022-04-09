@@ -34,14 +34,12 @@ const boolean ADC3_PINS[] = { TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TR
 
 // Switch enable pins
 
-// TODO: Add back EN10 and EN14 pins
-
 const U16 SWITCH_EN_PINS[] = { EN0_Pin, EN1_Pin, EN2_Pin, EN3_Pin, EN4_Pin, EN5_Pin, EN6_Pin, EN7_Pin, EN8_Pin, EN9_Pin,
-		/*EN10_Pin, */EN11_Pin, EN12_Pin, EN13_Pin,/* EN14_Pin, */EN15_Pin, EN16_Pin, EN17_Pin, EN18_Pin, EN19_Pin };
+		EN10_Pin, EN11_Pin, EN12_Pin, EN13_Pin, EN14_Pin, EN15_Pin, EN16_Pin, EN17_Pin, EN18_Pin, EN19_Pin };
 
 const GPIO_TypeDef* SWITCH_EN_PORTS[] = { EN0_GPIO_Port, EN1_GPIO_Port, EN2_GPIO_Port, EN3_GPIO_Port, EN4_GPIO_Port, EN5_GPIO_Port,
-		EN6_GPIO_Port, EN7_GPIO_Port, EN8_GPIO_Port, EN9_GPIO_Port,/* EN10_GPIO_Port, */EN11_GPIO_Port, EN12_GPIO_Port, EN13_GPIO_Port,
-		/*EN14_GPIO_Port, */EN15_GPIO_Port, EN16_GPIO_Port, EN17_GPIO_Port, EN18_GPIO_Port, EN19_GPIO_Port };
+		EN6_GPIO_Port, EN7_GPIO_Port, EN8_GPIO_Port, EN9_GPIO_Port, EN10_GPIO_Port, EN11_GPIO_Port, EN12_GPIO_Port, EN13_GPIO_Port,
+		EN14_GPIO_Port, EN15_GPIO_Port, EN16_GPIO_Port, EN17_GPIO_Port, EN18_GPIO_Port, EN19_GPIO_Port };
 
 // The rating of each of the fuses in milliamperes
 const U16 FUSE_RATING[]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -53,3 +51,6 @@ const U16 FUSE_PEAK_TIME[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 const U16 FUSE_FAST_BLOW_RATING[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 const S16 FUSE_RETRIES[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+const boolean POPULATED_CHANNELS[] = { TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
+		TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE };
