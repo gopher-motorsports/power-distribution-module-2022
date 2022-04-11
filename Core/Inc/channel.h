@@ -17,13 +17,13 @@
 #define DIA_EN_MASK     0x04
 
 typedef enum {
-	DIAGNOSTICS_DISABLED   = 0b000,
-	DIAGNOSTICS_CURRENT    = 0b100,
-	DIAGNOSTICS_TEMP       = 0b101,
-	DIAGNOSTICS_VOLTAGE    = 0b111,
+	DIAGNOSTIC_DISABLED   = 0b000,
+	DIAGNOSTIC_CURRENT    = 0b100,
+	DIAGNOSTIC_TEMP       = 0b101,
+	DIAGNOSTIC_VOLTAGE    = 0b111,
 	// DIAGNOSTICS_CURRENT and DIAGNOSTICS_OL_STB are the same,
 	// they are determined by switch enable
-	DIAGNOSTICS_OL_STB     = 0b100
+	DIAGNOSTIC_OL_STB     = 0b100
 } DiagnosticState;
 
 typedef enum {
@@ -51,7 +51,7 @@ typedef struct {
 		SwitchState state;
 		// SNS Current
 		U16 i_sns;
-		// If there is no load connector to the switch
+		// If there is no load connected to the switch
 		boolean no_load;
 		// Switch enable pin
 		U16 en_pin;
@@ -110,9 +110,6 @@ typedef struct {
 
 	// ADC Stuff
 
-	// TODO: Make two buffers and switch between them, clearing one then the other
-	// so no stale measurements are recorded
-
 	struct ChannelADC {
 
 		// The buffer for storing recent averaged ADC measurements
@@ -138,10 +135,6 @@ typedef struct {
 	} readings;
 
 } Channel;
-
-// TODO: Functions
-// Function to run every tick that updates both downstream buffers, and
-// updates all states, checks for hardware faults, updates fuse state, updates, etc.
 
 void init_channel(
 		Channel* channel,

@@ -26,10 +26,10 @@ const GPIO_TypeDef* ADC_INPUT_PORTS[] = { ADC_INPUT0_GPIO_Port, ADC_INPUT1_GPIO_
 		ADC_INPUT10_GPIO_Port, ADC_INPUT11_GPIO_Port, ADC_INPUT12_GPIO_Port, ADC_INPUT13_GPIO_Port, ADC_INPUT14_GPIO_Port, ADC_INPUT15_GPIO_Port,
 		ADC_INPUT16_GPIO_Port, ADC_INPUT17_GPIO_Port, ADC_INPUT18_GPIO_Port, ADC_INPUT19_GPIO_Port };
 
-const boolean ADC1_PINS[] = { FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+const boolean ADC1_CHANNELS[] = { FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
 		TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE };
 
-const boolean ADC3_PINS[] = { TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
+const boolean ADC3_CHANNELS[] = { TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
 		FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE };
 
 // Switch enable pins
@@ -42,15 +42,17 @@ const GPIO_TypeDef* SWITCH_EN_PORTS[] = { EN0_GPIO_Port, EN1_GPIO_Port, EN2_GPIO
 		EN14_GPIO_Port, EN15_GPIO_Port, EN16_GPIO_Port, EN17_GPIO_Port, EN18_GPIO_Port, EN19_GPIO_Port };
 
 // The rating of each of the fuses in milliamperes
-const U16 FUSE_RATING[]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-// The peak current
-const U16 FUSE_PEAK_CURRENT[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-const U16 FUSE_PEAK_TIME[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
+const U16 FUSE_RATING[]           = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+// The peak current in milliamperes
+const U16 FUSE_PEAK_CURRENT[]     = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+// The peak current duration in milliseconds
+const U16 FUSE_PEAK_TIME_MS[]     = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+// The fuses's rating (the amount of continuous current it can take) in millamperes
 const U16 FUSE_FAST_BLOW_RATING[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-const S16 FUSE_RETRIES[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
+// The amount of retries allow for each channel's fuse
+const S16 FUSE_RETRIES[]          = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+// The delay before each channel is retried after a software fuse is blown in milliseconds
+const U16 FUSE_RETRY_DELAY_MS[]   = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+// TODO: Implement warnings with open load
 const boolean POPULATED_CHANNELS[] = { TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
 		TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE };

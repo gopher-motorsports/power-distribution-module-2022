@@ -91,9 +91,6 @@
 // How long the fuse integrates current measurements
 #define FUSE_SAMPLE_PERIOD_MS 1
 
-#define MAX_FUSE_RETRIES 10
-#define FUSE_RETRY_DELAY_MS 50
-
 #define NUM_CHANNELS 20
 
 #define ADC1_NUM_PINS 10
@@ -105,15 +102,28 @@
 #define VOLTAGE_PERIOD_TICKS configTICK_RATE_HZ/VOLTAGE_RATE_HZ
 #define TEMP_PERIOD_TICKS configTICK_RATE_HZ/TEMP_RATE_HZ
 
+// Make our diagnostic queue have a length of 2 because we only have two
+// possible diagnostic states besides current
+#define DIAGNOSTIC_QUEUE_LENGTH 2
 
 // The size of the ADC buffer for each channel
 #define CHANNEL_ADC_BUFFER_SIZE 50
+
+// The length of the channel update in microseconds
+#define CHANNEL_UPDATE_DELAY_US 3
 
 // The size of each channel's filtered ADC buffer
 // Ideally, this buffer should take just about one tick to fill up, so that by
 // the next tick all previous measurements have been overwritten and there is
 // no bleed-over from one tick to the next
 #define CHANNEL_FILTERED_BUFFER_SIZE 350
+
+
+#define MAIN_LOOP_DELAY_MS 1
+
+// ========================
+// || Physical Constants ||
+// ========================
 
 #define MILLIAMPS_PER_AMP 1000
 

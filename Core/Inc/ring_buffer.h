@@ -27,12 +27,10 @@ U16 ring_buffer_passive_average(U16RingBuffer* buffer);
 U16 ring_buffer_entire_average(U16RingBuffer* buffer);
 U16 ring_buffer_first_half_average(U16RingBuffer* buffer);
 U16 ring_buffer_second_half_average(U16RingBuffer* buffer);
-U16 ring_buffer_ith_average(U16RingBuffer* buffer, U16 step);
+U16 ring_buffer_ith_average(U16RingBuffer* buffer, U16 offset, U16 step);
 U16 ring_buffer_range_average(U16RingBuffer* buffer, U16 start, U16 stop);
 U16 ring_buffer_get(U16RingBuffer* buffer, U16 index);
 U16RingBuffer* ring_buffer_ith(U16RingBuffer* buffer, U16 offset, U16 step);
-// TODO: Implement
-U16RingBuffer* ring_buffer_average_ith(U16RingBuffer* buffer, U16 offset, U16 step);
 U16RingBuffer* ring_buffer_slice(U16RingBuffer* buffer, U16 start, U16 end);
 void ring_buffer_clear(U16RingBuffer* buffer);
 void free_ring_buffer(U16RingBuffer* buffer);

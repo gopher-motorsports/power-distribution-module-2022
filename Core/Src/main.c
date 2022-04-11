@@ -28,7 +28,6 @@
 #include <string.h>
 #include "config.h"
 #include <math.h>
-#include "ring_buffer.h"
 
 /* USER CODE END Includes */
 
@@ -57,7 +56,6 @@ CAN_HandleTypeDef hcan1;
 I2C_HandleTypeDef hi2c4;
 
 TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim14;
 
 UART_HandleTypeDef huart2;
 
@@ -75,7 +73,6 @@ static void MX_CAN1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC3_Init(void);
 static void MX_I2C4_Init(void);
-static void MX_TIM14_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART2_UART_Init(void);
 void task_main_loop(void const * argument);
@@ -123,15 +120,16 @@ int main(void)
   MX_ADC1_Init();
   MX_ADC3_Init();
   MX_I2C4_Init();
-  MX_TIM14_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  // ====================
+  // || Initialization ||
+  // ====================
+
   init_gcan(&hcan1);
-//  buf = init_adc_dma(&hadc3, ADC1_BUF_LEN);
-//  chnl_buf = init_ring_buffer(200);
-  HAL_TIM_Base_Start(&htim14);
+  init_pdm(&htim2, &hadc1, &hadc3);
 
   /* USER CODE END 2 */
 
@@ -193,15 +191,25 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 12;
+  RCC_OscInitStruct.PLL.PLLN = 208;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -209,12 +217,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_6) != HAL_OK)
   {
     Error_Handler();
   }
@@ -247,7 +255,7 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
@@ -369,7 +377,7 @@ static void MX_ADC3_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc3.Instance = ADC3;
-  hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc3.Init.Resolution = ADC_RESOLUTION_12B;
   hadc3.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc3.Init.ContinuousConvMode = ENABLE;
@@ -487,7 +495,7 @@ static void MX_CAN1_Init(void)
 
   /* USER CODE END CAN1_Init 1 */
   hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 2;
+  hcan1.Init.Prescaler = 13;
   hcan1.Init.Mode = CAN_MODE_LOOPBACK;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
   hcan1.Init.TimeSeg1 = CAN_BS1_6TQ;
@@ -524,7 +532,7 @@ static void MX_I2C4_Init(void)
 
   /* USER CODE END I2C4_Init 1 */
   hi2c4.Instance = I2C4;
-  hi2c4.Init.Timing = 0x00303D5B;
+  hi2c4.Init.Timing = 0x00C0FEFF;
   hi2c4.Init.OwnAddress1 = 0;
   hi2c4.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c4.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -573,7 +581,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 16-1;
+  htim2.Init.Prescaler = 104-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -596,37 +604,6 @@ static void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
-  * @brief TIM14 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM14_Init(void)
-{
-
-  /* USER CODE BEGIN TIM14_Init 0 */
-
-  /* USER CODE END TIM14_Init 0 */
-
-  /* USER CODE BEGIN TIM14_Init 1 */
-
-  /* USER CODE END TIM14_Init 1 */
-  htim14.Instance = TIM14;
-  htim14.Init.Prescaler = 160-1;
-  htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 65535;
-  htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM14_Init 2 */
-
-  /* USER CODE END TIM14_Init 2 */
 
 }
 
@@ -695,6 +672,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
@@ -782,21 +760,11 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc) {
-
+	adc_interrupt(hadc, TRUE);
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-//	HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
-//	U8 msg_buf[80];
-//	buf->head = (ADC3_NUM_PINS-(ADC3_BUF_LEN*num_buf_writes) % ADC3_NUM_PINS) % ADC3_NUM_PINS;
-//	ring_buffer_ith(buf, ADC3_NUM_PINS, 0);
-//	sprintf((char*)msg_buf, "%4d, %4d, %4d, %4d, %4d, %4d, %4d, %4d, %4d, %4d, %8u    %8u   \r",
-//			ring_buffer_get(buf, 0), ring_buffer_get(buf, 1), ring_buffer_get(buf, 2), ring_buffer_get(buf, 3),
-//			ring_buffer_get(buf, 4), ring_buffer_get(buf, 5), ring_buffer_get(buf, 6), ring_buffer_get(buf, 7),
-//			ring_buffer_get(buf, 8), ring_buffer_get(buf, 9), ring_buffer_passive_average(chnl_buf), __HAL_TIM_GET_COUNTER(&htim14) - timer_val);
-//	print_uart(&huart3, msg_buf, 80);
-//	num_buf_writes++;
-//	timer_val = __HAL_TIM_GET_COUNTER(&htim14);
+	adc_interrupt(hadc, FALSE);
 }
 
 /* USER CODE END 4 */
@@ -814,8 +782,8 @@ void task_main_loop(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	main_loop(huart2);
-    osDelay(10);
+	main_loop();
+    osDelay(MAIN_LOOP_DELAY_MS);
   }
   /* USER CODE END 5 */
 }

@@ -12,9 +12,10 @@
 #include "channel.h"
 #include "ring_buffer.h"
 
-void init_adc_dma(ADC_HandleTypeDef* hadc, U16 buffer[], U16 buffer_size);
+void init_adc_dma(ADC_HandleTypeDef* hadc, volatile U16 buffer[], U16 buffer_size);
 void init_pdm();
 void main_loop();
+void adc_interrupt(ADC_HandleTypeDef* hadc, boolean first_half);
 void update_all_channels();
 FuseState check_fuse(U8 channel);
 void update_fuse(U8 channel);

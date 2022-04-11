@@ -116,16 +116,17 @@ U16 ring_buffer_second_half_average(U16RingBuffer* buffer) {
 }
 
 /**
- * Averages every i-th element in the buffer
+ * Averages every i-th element in the buffer, starting at the i-th element
  *
  * @param buffer The buffer to average
+ * @param offset The index of the first item to average
  * @param step The amount ot step each iteration
  *
  */
-U16 ring_buffer_ith_average(U16RingBuffer* buffer, U16 step) {
+U16 ring_buffer_ith_average(U16RingBuffer* buffer, U16 offset, U16 step) {
 	U32 sum = 0;
 	U16 count = 0;
-	for(U16 i = step; i < buffer->size; i += step) {
+	for(U16 i = offset; i < buffer->size; i += step) {
 		sum += ring_buffer_get(buffer, i);
 		count++;
 	}
@@ -176,8 +177,7 @@ U16 ring_buffer_get(U16RingBuffer* buffer, U16 index) {
  * @return A newly allocated ring buffer with the aforementioned properties
  */
 U16RingBuffer* ring_buffer_ith(U16RingBuffer* buffer, U16 offset, U16 step) {
-	// TODO: WRONG, might be empty space at end of buffer
-	U16 new_buffer_size = (buffer->size - offset)/step;
+	U16 new_buffer_size = (((buffer->size - offset) + step - 1)/step);
 	if(new_buffer_size < 0) {
 		return 0;
 	}

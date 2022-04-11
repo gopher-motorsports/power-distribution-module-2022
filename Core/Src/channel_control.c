@@ -18,14 +18,25 @@ extern U16 FUSE_RATING[];
 extern GPIO_TypeDef* SWITCH_EN_PORTS[];
 extern U16 SWITCH_EN_PINS[];
 extern S16 FUSE_RETRIES[];
+extern U16 FUSE_RETRY_DELAY_MS[];
 
 void init_channels(Channel* channels, DiagnosticState* diagnostic_state, volatile U32* time_micros) {
-	// TODO: Make MAX_FUSE_RETRIES and FUSE_RETRY_DELAY arrays
 	for(U8 i = 0; i < NUM_CHANNELS; i++) {
 		init_channel(&channels[i], i, time_micros, diagnostic_state, FUSE_RETRIES[i],
 				FUSE_PEAK_CURRENT[i] * FUSE_PEAK_TIME[i], FUSE_FAST_BLOW_RATING[i],
-				FUSE_RATING[i], FUSE_RETRY_DELAY_MS, SWITCH_EN_PINS[i], SWITCH_EN_PORTS[i]);
+				FUSE_RATING[i], FUSE_RETRY_DELAY_MS[i], SWITCH_EN_PINS[i], SWITCH_EN_PORTS[i]);
 	}
+}
+
+void init_dsc(DiagnosticStateController* dsc, U16 voltage_period, U16 temp_period) {
+	dsc->state = DIAGNOSTIC_CURRENT;
+	for(U8 i = 0; i < DIAGNOSTIC_QUEUE_LENGTH; i++) {
+		dsc->queue[i] = DIAGNOSTIC_CURRENT;
+	}
+	dsc->voltage_period = voltage_period;
+	dsc->temp_period = temp_period;
+	dsc->voltage_timer = 0;
+	dsc->temp_timer = 0;
 }
 
 void update_channels(Channel* channels, U8 num_channels) {
@@ -39,7 +50,7 @@ void update_channels(Channel* channels, U8 num_channels) {
  * any ADC measurements made before the minimum wait time specified in the
  * switch datasheet have to be discarded.
  */
-void set_all_channel_diagnostics(Channel* channels, DiagnosticState state) {
+void set_diagnostics_raw(Channel* channels, DiagnosticState state) {
 	for(U8 i = 0; i < NUM_CHANNELS; i++) {
 		update_channel_timing(&channels[i], T_SNS_DIA_SW);
 	}
@@ -48,10 +59,71 @@ void set_all_channel_diagnostics(Channel* channels, DiagnosticState state) {
 	HAL_GPIO_WritePin(DIA_EN_PORT, DIA_EN_PIN, state | DIA_EN_MASK);
 }
 
+
+
+/**
+ * Updates the diagnostic state controller to add a desired state to the queue.
+ * The state will be switched to within several loop iterations after the function is called
+ */
+void set_diagnostics(DiagnosticStateController* dsc, DiagnosticState state) {
+	// Push the desired state the to the queue
+	for(U8 i = 0; i < DIAGNOSTIC_QUEUE_LENGTH; i++) {
+		if(dsc->queue[i] == DIAGNOSTIC_CURRENT) {
+			dsc->queue[i] = state;
+			return;
+		}
+	}
+}
+
+/*
+ * Updates the queue in the DiagnosticStateController.
+ * This function should be called before update_diagnostics!
+ */
+void update_diagnostics_queue(DiagnosticStateController* dsc) {
+	// Increment both timers
+	dsc->voltage_timer++;
+	dsc->temp_timer++;
+	// If either of the timers are over, add their state to the queue
+	if(dsc->voltage_timer >= dsc->voltage_period) {
+		set_diagnostics(dsc, DIAGNOSTIC_VOLTAGE);
+	}
+	if(dsc->temp_timer >= dsc->temp_period) {
+		set_diagnostics(dsc, DIAGNOSTIC_TEMP);
+	}
+	// If the state is currently set to the state the one of the timers is
+	// currently monitoring, that means that it was set to that state last
+	// tick, and we will be measuring it this tick, so we set the timers to
+	// 0 after we increment them
+	if(dsc->state == DIAGNOSTIC_VOLTAGE) {
+		dsc->voltage_timer = 0;
+	}
+	if(dsc->state == DIAGNOSTIC_TEMP) {
+		dsc->temp_timer = 0;
+	}
+}
+
+void update_diagnostics(Channel* channels, DiagnosticStateController* dsc) {
+	// If we were just measuring current, advance the queue
+	if(dsc->state == DIAGNOSTIC_CURRENT) {
+		dsc->state = dsc->queue[0];
+		// Move everything up one in the queue
+		for(U8 i = 0; i < DIAGNOSTIC_QUEUE_LENGTH - 1; i++) {
+			dsc->queue[i] = dsc->queue[i+1];
+		}
+		dsc->queue[DIAGNOSTIC_QUEUE_LENGTH-1] = DIAGNOSTIC_CURRENT;
+		set_diagnostics_raw(channels, dsc->state);
+	} else {
+		// If we weren't measuring current, switch the mode to current so that
+		// we don't go more than one tick without measuring current
+		dsc->state = DIAGNOSTIC_CURRENT;
+		set_diagnostics_raw(channels, dsc->state);
+	}
+}
+
 /**
  * Returns the average battery voltqge from the
  */
-U16 get_battery_voltage(Channel* channels) {
+U16 check_battery_voltage(Channel* channels) {
 	U32 average = 0;
 	for(U8 i = 0; i < NUM_CHANNELS; i++) {
 		average += channels[i].readings.voltage;
@@ -60,19 +132,19 @@ U16 get_battery_voltage(Channel* channels) {
 	return average;
 }
 
-U16 get_channel_supply_voltage(Channel* channels, U8 id) {
+U16 check_channel_supply_voltage(Channel* channels, U8 id) {
 	return channels[id].readings.voltage;
 }
 
-U16 get_channel_temperature(Channel* channels, U8 id) {
+U16 check_channel_temperature(Channel* channels, U8 id) {
 	return channels[id].readings.temp;
 }
 
-U16 get_channel_current(Channel* channels, U8 id) {
+U16 check_channel_current(Channel* channels, U8 id) {
 	return channels[id].readings.current;
 }
 
-boolean get_channel_fault(Channel* channels, U8 id) {
+boolean check_channel_fault(Channel* channels, U8 id) {
 	return channels[id].fuse.state != FUSE_ACTIVE;
 }
 
@@ -82,12 +154,6 @@ boolean get_channel_fault(Channel* channels, U8 id) {
  * Note: This only updates when the switch is turned off
  *
  */
-boolean get_channel_open_load(Channel* channels, U8 id) {
-	// TODO: Software Open Load
+boolean check_channel_open_load(Channel* channels, U8 id) {
 	return channels[id].hw_switch.no_load;
-}
-
-// TODO: Stick fault??
-void clear_all_channel_hw_faults() {
-
 }
