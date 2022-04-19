@@ -14,6 +14,8 @@
 
 void init_adc_dma(ADC_HandleTypeDef* hadc, volatile U16 buffer[], U16 buffer_size);
 void init_pdm();
+void init_leds();
+void set_all_leds(boolean fault, boolean status, boolean adc);
 void main_loop();
 void adc_interrupt(ADC_HandleTypeDef* hadc, boolean first_half);
 void update_all_channels();

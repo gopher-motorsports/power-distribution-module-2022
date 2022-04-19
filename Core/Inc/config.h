@@ -86,10 +86,10 @@
 // Voltage and temperature read rates, current is logged
 // on all other task calls
 #define VOLTAGE_RATE_HZ 10
-#define TEMP_RATE_HZ 10
+#define TEMP_RATE_HZ 1
 
-// How long the fuse integrates current measurements
-#define FUSE_SAMPLE_PERIOD_MS 1
+// How often the fuse is updated in ms
+#define FUSE_UPDATE_PERIOD_MS 1
 
 #define NUM_CHANNELS 20
 
@@ -126,5 +126,6 @@
 // ========================
 
 #define MILLIAMPS_PER_AMP 1000
+#define MICROSECONDS_PER_MILLISECOND 1000
 
 #endif /* INC_CONFIG_H_ */

@@ -41,6 +41,9 @@ typedef struct {
 	// A pointer to the global diagnostic state
 	DiagnosticState* diagnostic_state;
 
+	// A boolean representing if there's something attached to the switch
+	boolean populated;
+
 	// Switch Stuff
 
 	struct Switch {
@@ -141,6 +144,7 @@ void init_channel(
 		U8 id,
 		volatile U32* time_micros,
 		DiagnosticState* diagnostic_state,
+		boolean populated,
 		U16 max_retries,
 		U32 max_integrator,
 		U16 max_current,

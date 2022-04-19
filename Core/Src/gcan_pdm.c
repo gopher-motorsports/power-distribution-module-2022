@@ -12,17 +12,18 @@
 
 
 // The HAL_CAN struct
-CAN_HandleTypeDef* example_hcan;
+CAN_HandleTypeDef* hcan;
 
 /**
  * GopherCAN Initialization
  */
 void init_gcan(CAN_HandleTypeDef* hcan_ptr)
 {
-	example_hcan = hcan_ptr;
+
+	hcan = hcan_ptr;
 
 	// Initialize CAN
-	if (init_can(example_hcan, GCAN_MODULE_ID, BXTYPE_MASTER))
+	if (init_can(hcan, GCAN_MODULE_ID, BXTYPE_MASTER))
 	{
 		// An error has occurred; stay here
 		// TODO: Handle error
@@ -51,5 +52,5 @@ void gcan_process_buffer()
 	service_can_rx_buffer();
 
 	// Handle the transmission hardware for each CAN bus
-	service_can_tx_hardware(example_hcan);
+	service_can_tx_hardware(hcan);
 }

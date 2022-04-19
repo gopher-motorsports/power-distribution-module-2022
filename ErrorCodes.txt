@@ -1,19 +1,12 @@
-Fault Light
-
-Hard Fault    - - 
-Bus Fault     ...-
-Memory Fault  ----
-Usage Fault   .-.-
-
 Status Light
 
+Hard Fault       - - 
 STM Init Fail   .-.-
 CAN Init Error  - - 
 GCAN CB Error   ...-
 FreeRTOS Error  ....
 Brownout        ..--
 Kernel Error    . . 
-
 
 ADC Light
 

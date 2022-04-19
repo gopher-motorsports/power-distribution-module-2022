@@ -11,8 +11,9 @@
 #include "base_types.h"
 #include "freertos.h"
 
+extern boolean POPULATED_CHANNELS[];
 extern U16 FUSE_PEAK_CURRENT[];
-extern U16 FUSE_PEAK_TIME[];
+extern U16 FUSE_PEAK_TIME_MS[];
 extern U16 FUSE_FAST_BLOW_RATING[];
 extern U16 FUSE_RATING[];
 extern GPIO_TypeDef* SWITCH_EN_PORTS[];
@@ -22,9 +23,19 @@ extern U16 FUSE_RETRY_DELAY_MS[];
 
 void init_channels(Channel* channels, DiagnosticState* diagnostic_state, volatile U32* time_micros) {
 	for(U8 i = 0; i < NUM_CHANNELS; i++) {
-		init_channel(&channels[i], i, time_micros, diagnostic_state, FUSE_RETRIES[i],
-				FUSE_PEAK_CURRENT[i] * FUSE_PEAK_TIME[i], FUSE_FAST_BLOW_RATING[i],
-				FUSE_RATING[i], FUSE_RETRY_DELAY_MS[i], SWITCH_EN_PINS[i], SWITCH_EN_PORTS[i]);
+		init_channel(
+				&channels[i],
+				i,
+				time_micros,
+				diagnostic_state,
+				POPULATED_CHANNELS[i],
+				FUSE_RETRIES[i],
+				FUSE_PEAK_CURRENT[i] * FUSE_PEAK_TIME_MS[i],
+				FUSE_FAST_BLOW_RATING[i],
+				FUSE_RATING[i],
+				FUSE_RETRY_DELAY_MS[i],
+				SWITCH_EN_PINS[i],
+				SWITCH_EN_PORTS[i]);
 	}
 }
 
@@ -35,8 +46,8 @@ void init_dsc(DiagnosticStateController* dsc, U16 voltage_period, U16 temp_perio
 	}
 	dsc->voltage_period = voltage_period;
 	dsc->temp_period = temp_period;
-	dsc->voltage_timer = 0;
-	dsc->temp_timer = 0;
+	dsc->voltage_last = 0;
+	dsc->temp_last = 0;
 }
 
 void update_channels(Channel* channels, U8 num_channels) {
@@ -54,9 +65,9 @@ void set_diagnostics_raw(Channel* channels, DiagnosticState state) {
 	for(U8 i = 0; i < NUM_CHANNELS; i++) {
 		update_channel_timing(&channels[i], T_SNS_DIA_SW);
 	}
-	HAL_GPIO_WritePin(SEL1_PORT, SEL1_PIN, state | SEL1_MASK);
-	HAL_GPIO_WritePin(SEL2_PORT, SEL2_PIN, state | SEL2_MASK);
-	HAL_GPIO_WritePin(DIA_EN_PORT, DIA_EN_PIN, state | DIA_EN_MASK);
+	HAL_GPIO_WritePin(SEL1_PORT, SEL1_PIN, state & SEL1_MASK);
+	HAL_GPIO_WritePin(SEL2_PORT, SEL2_PIN, state & SEL2_MASK);
+	HAL_GPIO_WritePin(DIA_EN_PORT, DIA_EN_PIN, state & DIA_EN_MASK);
 }
 
 
@@ -68,6 +79,9 @@ void set_diagnostics_raw(Channel* channels, DiagnosticState state) {
 void set_diagnostics(DiagnosticStateController* dsc, DiagnosticState state) {
 	// Push the desired state the to the queue
 	for(U8 i = 0; i < DIAGNOSTIC_QUEUE_LENGTH; i++) {
+		if(dsc->queue[i] == state) {
+			return;
+		}
 		if(dsc->queue[i] == DIAGNOSTIC_CURRENT) {
 			dsc->queue[i] = state;
 			return;
@@ -80,25 +94,17 @@ void set_diagnostics(DiagnosticStateController* dsc, DiagnosticState state) {
  * This function should be called before update_diagnostics!
  */
 void update_diagnostics_queue(DiagnosticStateController* dsc) {
-	// Increment both timers
-	dsc->voltage_timer++;
-	dsc->temp_timer++;
+
+	U32 tick = HAL_GetTick();
+
 	// If either of the timers are over, add their state to the queue
-	if(dsc->voltage_timer >= dsc->voltage_period) {
+	if(tick - dsc->voltage_last >= dsc->voltage_period) {
 		set_diagnostics(dsc, DIAGNOSTIC_VOLTAGE);
+		dsc->voltage_last = tick;
 	}
-	if(dsc->temp_timer >= dsc->temp_period) {
+	if(tick - dsc->temp_last >= dsc->temp_period) {
 		set_diagnostics(dsc, DIAGNOSTIC_TEMP);
-	}
-	// If the state is currently set to the state the one of the timers is
-	// currently monitoring, that means that it was set to that state last
-	// tick, and we will be measuring it this tick, so we set the timers to
-	// 0 after we increment them
-	if(dsc->state == DIAGNOSTIC_VOLTAGE) {
-		dsc->voltage_timer = 0;
-	}
-	if(dsc->state == DIAGNOSTIC_TEMP) {
-		dsc->temp_timer = 0;
+		dsc->temp_last = tick;
 	}
 }
 
@@ -121,7 +127,7 @@ void update_diagnostics(Channel* channels, DiagnosticStateController* dsc) {
 }
 
 /**
- * Returns the average battery voltqge from the
+ * Returns the average battery voltage from the
  */
 U16 check_battery_voltage(Channel* channels) {
 	U32 average = 0;

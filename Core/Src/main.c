@@ -103,14 +103,16 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  // MX_GPIO_Init();
+  // Turn all LEDs on so that if there's an issue with the clock we know
+  // init_leds();
+  //set_all_leds(TRUE, TRUE, TRUE);
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -128,8 +130,8 @@ int main(void)
   // || Initialization ||
   // ====================
 
-  init_gcan(&hcan1);
   init_pdm(&htim2, &hadc1, &hadc3);
+  init_gcan(&hcan1);
 
   /* USER CODE END 2 */
 
@@ -195,12 +197,13 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 12;
-  RCC_OscInitStruct.PLL.PLLN = 208;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 192;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -281,7 +284,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_10;
+  sConfig.Channel = ADC_CHANNEL_12;
   sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -289,7 +292,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Channel = ADC_CHANNEL_3;
   sConfig.Rank = ADC_REGULAR_RANK_3;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -297,7 +300,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = ADC_REGULAR_RANK_4;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -321,7 +324,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_2;
+  sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_REGULAR_RANK_7;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -329,7 +332,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_7;
+  sConfig.Channel = ADC_CHANNEL_6;
   sConfig.Rank = ADC_REGULAR_RANK_8;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -337,7 +340,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_6;
+  sConfig.Channel = ADC_CHANNEL_5;
   sConfig.Rank = ADC_REGULAR_RANK_9;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -345,7 +348,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_5;
+  sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = ADC_REGULAR_RANK_10;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -394,7 +397,7 @@ static void MX_ADC3_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_11;
+  sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
@@ -403,7 +406,7 @@ static void MX_ADC3_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_6;
+  sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
@@ -443,7 +446,7 @@ static void MX_ADC3_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_8;
+  sConfig.Channel = ADC_CHANNEL_6;
   sConfig.Rank = ADC_REGULAR_RANK_7;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
@@ -451,7 +454,7 @@ static void MX_ADC3_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Channel = ADC_CHANNEL_8;
   sConfig.Rank = ADC_REGULAR_RANK_8;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
@@ -459,7 +462,7 @@ static void MX_ADC3_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_12;
+  sConfig.Channel = ADC_CHANNEL_10;
   sConfig.Rank = ADC_REGULAR_RANK_9;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
@@ -467,7 +470,7 @@ static void MX_ADC3_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_7;
+  sConfig.Channel = ADC_CHANNEL_11;
   sConfig.Rank = ADC_REGULAR_RANK_10;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
@@ -495,8 +498,8 @@ static void MX_CAN1_Init(void)
 
   /* USER CODE END CAN1_Init 1 */
   hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 13;
-  hcan1.Init.Mode = CAN_MODE_LOOPBACK;
+  hcan1.Init.Prescaler = 6;
+  hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
   hcan1.Init.TimeSeg1 = CAN_BS1_6TQ;
   hcan1.Init.TimeSeg2 = CAN_BS2_1TQ;
@@ -532,7 +535,7 @@ static void MX_I2C4_Init(void)
 
   /* USER CODE END I2C4_Init 1 */
   hi2c4.Instance = I2C4;
-  hi2c4.Init.Timing = 0x00C0FEFF;
+  hi2c4.Init.Timing = 0x20303E5D;
   hi2c4.Init.OwnAddress1 = 0;
   hi2c4.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c4.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -581,7 +584,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 104-1;
+  htim2.Init.Prescaler = 96-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -676,27 +679,30 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, EN13_Pin|EN12_Pin|EN19_Pin|EN18_Pin
-                          |EN17_Pin|EN16_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, EN13_Pin|EN12_Pin|EN19_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, EN10_Pin|DIA_EN_Pin|SEL2_Pin|EN5_Pin
-                          |EN4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, EN18_Pin|EN17_Pin|EN16_Pin|DIA_EN_Pin
+                          |SEL2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, EN11_Pin|LATCH_Pin|SEL1_Pin|EN15_Pin
-                          |LED_ADC_Pin|STATUS_LED_Pin|FAULT_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, SEL1_Pin|EN11_Pin|EN10_Pin|EN15_Pin
+                          |EN5_Pin|EN4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, EN14_Pin|EN3_Pin|EN7_Pin|EN2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, LATCH_Pin|ADC_LED_Pin|STATUS_LED_Pin|FAULT_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, EN8_Pin|EN6_Pin|EN9_Pin|EN1_Pin
-                          |EN0_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, EN14_Pin|EN0_Pin|EN3_Pin|EN2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, EN9_Pin|EN8_Pin|EN7_Pin|EN6_Pin
+                          |EN1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : SHAKE_INT_Pin */
   GPIO_InitStruct.Pin = SHAKE_INT_Pin;
@@ -704,52 +710,49 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(SHAKE_INT_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EN13_Pin EN12_Pin EN19_Pin EN18_Pin
-                           EN17_Pin EN16_Pin */
-  GPIO_InitStruct.Pin = EN13_Pin|EN12_Pin|EN19_Pin|EN18_Pin
-                          |EN17_Pin|EN16_Pin;
+  /*Configure GPIO pins : EN13_Pin EN12_Pin EN19_Pin */
+  GPIO_InitStruct.Pin = EN13_Pin|EN12_Pin|EN19_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : EN18_Pin EN17_Pin EN16_Pin DIA_EN_Pin
+                           SEL2_Pin */
+  GPIO_InitStruct.Pin = EN18_Pin|EN17_Pin|EN16_Pin|DIA_EN_Pin
+                          |SEL2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD8 PD9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : EN10_Pin DIA_EN_Pin SEL2_Pin EN5_Pin
-                           EN4_Pin */
-  GPIO_InitStruct.Pin = EN10_Pin|DIA_EN_Pin|SEL2_Pin|EN5_Pin
-                          |EN4_Pin;
+  /*Configure GPIO pins : SEL1_Pin EN11_Pin EN10_Pin EN15_Pin
+                           EN5_Pin EN4_Pin */
+  GPIO_InitStruct.Pin = SEL1_Pin|EN11_Pin|EN10_Pin|EN15_Pin
+                          |EN5_Pin|EN4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EN11_Pin LATCH_Pin SEL1_Pin EN15_Pin
-                           LED_ADC_Pin STATUS_LED_Pin FAULT_LED_Pin */
-  GPIO_InitStruct.Pin = EN11_Pin|LATCH_Pin|SEL1_Pin|EN15_Pin
-                          |LED_ADC_Pin|STATUS_LED_Pin|FAULT_LED_Pin;
+  /*Configure GPIO pins : LATCH_Pin ADC_LED_Pin STATUS_LED_Pin FAULT_LED_Pin */
+  GPIO_InitStruct.Pin = LATCH_Pin|ADC_LED_Pin|STATUS_LED_Pin|FAULT_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EN14_Pin EN3_Pin EN7_Pin EN2_Pin */
-  GPIO_InitStruct.Pin = EN14_Pin|EN3_Pin|EN7_Pin|EN2_Pin;
+  /*Configure GPIO pins : EN14_Pin EN0_Pin EN3_Pin EN2_Pin */
+  GPIO_InitStruct.Pin = EN14_Pin|EN0_Pin|EN3_Pin|EN2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EN8_Pin EN6_Pin EN9_Pin EN1_Pin
-                           EN0_Pin */
-  GPIO_InitStruct.Pin = EN8_Pin|EN6_Pin|EN9_Pin|EN1_Pin
-                          |EN0_Pin;
+  /*Configure GPIO pins : EN9_Pin EN8_Pin EN7_Pin EN6_Pin
+                           EN1_Pin */
+  GPIO_InitStruct.Pin = EN9_Pin|EN8_Pin|EN7_Pin|EN6_Pin
+                          |EN1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -764,7 +767,7 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-	adc_interrupt(hadc, FALSE);
+	//adc_interrupt(hadc, FALSE);
 }
 
 /* USER CODE END 4 */

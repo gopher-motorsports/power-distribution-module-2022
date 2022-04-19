@@ -17,6 +17,7 @@ void init_channel(
 		U8 id,
 		volatile U32* time_micros,
 		DiagnosticState* diagnostic_state,
+		boolean populated,
 		U16 max_retries,
 		U32 max_integrator,
 		U16 max_current,
@@ -28,7 +29,9 @@ void init_channel(
 
 	channel->diagnostic_state = diagnostic_state;
 
-	channel->hw_switch.set = SWITCH_DISABLED;
+	channel->populated = populated;
+
+	channel->hw_switch.set = populated ? SWITCH_ENABLED : SWITCH_DISABLED;
 	channel->hw_switch.state = SWITCH_DISABLED;
 	channel->hw_switch.i_sns = 0;
 	channel->hw_switch.no_load = TRUE;
@@ -100,7 +103,7 @@ void update_channel(Channel* channel) {
 
 void update_channel_fuse(Channel* channel) {
 	if(channel->fuse.state == FUSE_AUTO_RETRY) {
-		channel->fuse.retry_timer_ms++;
+		channel->fuse.retry_timer_ms += FUSE_UPDATE_PERIOD_MS;
 
 		if(channel->fuse.retry_timer_ms >= channel->fuse.retry_delay_ms) {
 			channel->fuse.state = FUSE_ACTIVE;
@@ -141,7 +144,7 @@ void channel_blow_fuse(Channel* channel) {
  * @return A boolean representing if the ADC was maxed out
  */
 boolean update_channel_read_buffer(Channel* channel) {
-	// Delay for 1us so we can do stuff with the buffer
+	// Delay for a couple of microseconds so we can do stuff with the buffer
 	update_channel_timing(channel, CHANNEL_UPDATE_DELAY_US);
 
 	// Store the ADC reading

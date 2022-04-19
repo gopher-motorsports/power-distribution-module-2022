@@ -16,11 +16,11 @@ typedef struct {
 	U16 size;
 	U16 item_count;
 	U32 sum;
-	U16* array;
+	volatile U16* array;
 } U16RingBuffer;
 
 U16RingBuffer* init_ring_buffer(U16 size);
-void init_ring_buffer_static(U16 size, U16RingBuffer* buffer, U16* array);
+void init_ring_buffer_static(U16 size, U16RingBuffer* buffer, volatile U16* array);
 void ring_buffer_append(U16RingBuffer* buffer, U16 element);
 void ring_buffer_append_buffer(U16RingBuffer* buffer1, U16RingBuffer* buffer2);
 U16 ring_buffer_passive_average(U16RingBuffer* buffer);

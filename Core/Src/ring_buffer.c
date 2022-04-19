@@ -29,7 +29,7 @@ U16RingBuffer* init_ring_buffer(U16 size) {
  * @param buffer A pointer to the buffer to initialize
  * @param array A pointer to the memory address to the buffer array
  */
-void init_ring_buffer_static(U16 size, U16RingBuffer* buffer, U16* array) {
+void init_ring_buffer_static(U16 size, U16RingBuffer* buffer, volatile U16* array) {
 	buffer->head = 0;
 	buffer->item_count = 0;
 	buffer->size = size;
@@ -74,9 +74,12 @@ void ring_buffer_append_buffer(U16RingBuffer* buffer1, U16RingBuffer* buffer2) {
  * buffer has not been manually modified (runs in O(1))
  *
  * @param buffer The buffer on which to calculate the average
- * @return An integer representing the average of entries in the buffer
+ * @return An integer representing the average of entries in the buffer, 0 if empty
  */
 U16 ring_buffer_passive_average(U16RingBuffer* buffer) {
+	if(buffer->item_count == 0) {
+		return 0;
+	}
 	return (buffer->sum / buffer->item_count);
 }
 

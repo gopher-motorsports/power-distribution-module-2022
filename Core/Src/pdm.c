@@ -7,14 +7,15 @@
 
 #include "pdm.h"
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "config.h"
 #include "cmsis_os.h"
 #include "channel.h"
 #include "channel_control.h"
+#include "led.h"
 
-// TODO: Priority 2: Figure out LED pins and configure
 // TODO: Priority 2: Program error codes on LED
 // TODO: Priority 3: Implement logging
 // TODO: Priority 3: Verify and update all documentation
@@ -42,30 +43,56 @@ U16RingBuffer ADC1_RING_BUF_2;
 U16RingBuffer ADC3_RING_BUF_2;
 Channel CHANNELS[NUM_CHANNELS];
 
+LED FAULT_LED;
+LED STATUS_LED;
+LED ADC_LED;
+
+extern UART_HandleTypeDef huart2;
+
 DiagnosticStateController DSC;
 
-extern ADC_HandleTypeDef* hadc1;
-extern ADC_HandleTypeDef* hadc3;
+ADC_HandleTypeDef* hadc1_ptr;
+ADC_HandleTypeDef* hadc3_ptr;
+extern boolean ADC1_CHANNELS[];
+extern boolean ADC3_CHANNELS[];
 
-void init_pdm(TIM_HandleTypeDef* tim, ADC_HandleTypeDef* hadc1, ADC_HandleTypeDef* hadc3) {
+void init_pdm(TIM_HandleTypeDef* tim, ADC_HandleTypeDef* adc1_ptr, ADC_HandleTypeDef* adc3_ptr) {
+	hadc1_ptr = adc1_ptr;
+	hadc3_ptr = adc3_ptr;
 	init_dsc(&DSC, VOLTAGE_PERIOD_TICKS, TEMP_PERIOD_TICKS);
 	init_channels(CHANNELS, &DSC.state, &tim->Instance->CNT);
-	init_adc_dma(hadc1, ADC1_BUF, ADC1_BUF_LEN);
-	init_adc_dma(hadc3, ADC3_BUF, ADC3_BUF_LEN);
-	init_ring_buffer_static(ADC1_BUF_LEN, ADC1_RING_BUF_1, ADC1_BUF);
-	init_ring_buffer_static(ADC3_BUF_LEN, ADC3_RING_BUF_1, ADC3_BUF);
-	init_ring_buffer_static(ADC1_BUF_LEN, ADC1_RING_BUF_2, ADC1_BUF+ADC1_BUF_LEN);
-	init_ring_buffer_static(ADC3_BUF_LEN, ADC3_RING_BUF_2, ADC3_BUF+ADC3_BUF_LEN);
+//	init_adc_dma(hadc1_ptr, ADC1_BUF, ADC1_BUF_LEN*2);
+//	init_adc_dma(hadc3_ptr, ADC3_BUF, ADC3_BUF_LEN*2);
+	init_ring_buffer_static(ADC1_BUF_LEN, &ADC1_RING_BUF_1, ADC1_BUF);
+	init_ring_buffer_static(ADC3_BUF_LEN, &ADC3_RING_BUF_1, ADC3_BUF);
+	init_ring_buffer_static(ADC1_BUF_LEN, &ADC1_RING_BUF_2, ADC1_BUF+ADC1_BUF_LEN);
+	init_ring_buffer_static(ADC3_BUF_LEN, &ADC3_RING_BUF_2, ADC3_BUF+ADC3_BUF_LEN);
+	init_led_pattern(&FAULT_LED, &tim->Instance->CNT, 0, 0);
+	init_led_pattern(&STATUS_LED, &tim->Instance->CNT, 0, 0);
 }
+
+
+void init_leds() {
+	init_led(&FAULT_LED, FAULT_LED_Pin, FAULT_LED_GPIO_Port);
+	init_led(&STATUS_LED, STATUS_LED_Pin, FAULT_LED_GPIO_Port);
+	init_led(&ADC_LED, ADC_LED_Pin, ADC_LED_GPIO_Port);
+}
+
+void set_all_leds(boolean fault, boolean status, boolean adc) {
+	set_led(&FAULT_LED, fault);
+	set_led(&STATUS_LED, status);
+	set_led(&ADC_LED, adc);
+}
+
 
 void init_adc_dma(ADC_HandleTypeDef* hadc, volatile U16 buffer[], U16 buffer_size) {
 	HAL_ADC_Start_DMA(hadc, (uint32_t*)buffer, buffer_size);
 }
 
-void print_uart(UART_HandleTypeDef huart, char* msg) {
+void print_uart(UART_HandleTypeDef* huart, char* msg) {
 	U8 msg_buf[strlen(msg)+1];
 	strcpy((char*)msg_buf, msg);
-	HAL_UART_Transmit(&huart, msg_buf, strlen((char*)msg_buf), HAL_MAX_DELAY);
+	HAL_UART_Transmit(huart, msg_buf, strlen((char*)msg_buf), HAL_MAX_DELAY);
 }
 
 void main_loop() {
@@ -81,21 +108,21 @@ void main_loop() {
  */
 void adc_interrupt(ADC_HandleTypeDef* hadc, boolean first_half) {
 	U8 adc_input_rank = 0;
-	boolean adc_channels[NUM_CHANNELS];
+	boolean* adc_channels;
 	U16RingBuffer* buf;
-	if(hadc == hadc1) {
+	if(hadc == hadc1_ptr) {
 		adc_channels = ADC1_CHANNELS;
 		if(first_half) {
-			buf = ADC1_RING_BUF_1;
+			buf = &ADC1_RING_BUF_1;
 		} else {
-			buf = ADC1_RING_BUF_2;
+			buf = &ADC1_RING_BUF_2;
 		}
-	} else if (hadc == hadc3) {
+	} else if (hadc == hadc3_ptr) {
 		adc_channels = ADC3_CHANNELS;
 		if(first_half) {
-			buf = ADC3_RING_BUF_1;
+			buf = &ADC3_RING_BUF_1;
 		} else {
-			buf = ADC3_RING_BUF_2;
+			buf = &ADC3_RING_BUF_2;
 		}
 	}
 	for(U8 i = 0; i < NUM_CHANNELS; i++) {
