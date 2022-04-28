@@ -15,10 +15,10 @@
 typedef struct {
 	DiagnosticState state;
 	DiagnosticState queue[2];
-	U16 voltage_period;
-	U16 temp_period;
-	U16 voltage_last;
-	U16 temp_last;
+	U32 voltage_period;
+	U32 temp_period;
+	U32 voltage_last;
+	U32 temp_last;
 } DiagnosticStateController;
 
 void init_channels(Channel* channels, DiagnosticState* diagnostic_state, volatile U32* time_micros);

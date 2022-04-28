@@ -64,7 +64,7 @@
 #define SNS_SHUNT_RESISTANCE_OHMS 500
 
 // The value of the SNS pin that indicates a fault
-#define SNS_FAULT_HIGH_CURRENT_MILLIAMPERES 6
+#define SNS_FAULT_HIGH_CURRENT_MICROAMPERES 6000
 
 // From https://www.ti.com/lit/ds/symlink/tps1ha08-q1.pdf
 
@@ -79,6 +79,8 @@
 
 // Maximum ADC reading
 #define MAX_ADC_READING 4095
+
+#define MAX_ADC_MARGIN 10
 
 // Maximum ADC Voltage
 #define MAX_ADC_VOLTAGE 3.3
@@ -107,7 +109,7 @@
 #define DIAGNOSTIC_QUEUE_LENGTH 2
 
 // The size of the ADC buffer for each channel
-#define CHANNEL_ADC_BUFFER_SIZE 50
+#define CHANNEL_ADC_BUFFER_SIZE 100
 
 // The length of the channel update in microseconds
 #define CHANNEL_UPDATE_DELAY_US 3
@@ -116,8 +118,7 @@
 // Ideally, this buffer should take just about one tick to fill up, so that by
 // the next tick all previous measurements have been overwritten and there is
 // no bleed-over from one tick to the next
-#define CHANNEL_FILTERED_BUFFER_SIZE 350
-
+#define CHANNEL_FILTERED_BUFFER_SIZE 4
 
 #define MAIN_LOOP_DELAY_MS 1
 
@@ -125,7 +126,8 @@
 // || Physical Constants ||
 // ========================
 
-#define MILLIAMPS_PER_AMP 1000
+#define MICROAMPS_PER_AMP 1000000
+#define MICROAMPS_PER_MILLIAMP 1000
 #define MICROSECONDS_PER_MILLISECOND 1000
 
 #endif /* INC_CONFIG_H_ */

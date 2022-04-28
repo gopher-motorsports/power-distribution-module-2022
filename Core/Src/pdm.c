@@ -16,6 +16,8 @@
 #include "channel_control.h"
 #include "led.h"
 
+
+// TODO: Priority 2: UART Errors
 // TODO: Priority 2: Program error codes on LED
 // TODO: Priority 3: Implement logging
 // TODO: Priority 3: Verify and update all documentation
@@ -47,7 +49,7 @@ LED FAULT_LED;
 LED STATUS_LED;
 LED ADC_LED;
 
-extern UART_HandleTypeDef huart2;
+UART_HandleTypeDef* huart;
 
 DiagnosticStateController DSC;
 
@@ -56,19 +58,24 @@ ADC_HandleTypeDef* hadc3_ptr;
 extern boolean ADC1_CHANNELS[];
 extern boolean ADC3_CHANNELS[];
 
-void init_pdm(TIM_HandleTypeDef* tim, ADC_HandleTypeDef* adc1_ptr, ADC_HandleTypeDef* adc3_ptr) {
+TIM_HandleTypeDef* tim;
+
+void init_pdm(TIM_HandleTypeDef* tim_ptr, ADC_HandleTypeDef* adc1_ptr, ADC_HandleTypeDef* adc3_ptr, UART_HandleTypeDef* huart_ptr) {
 	hadc1_ptr = adc1_ptr;
 	hadc3_ptr = adc3_ptr;
+	tim = tim_ptr;
+	huart = huart_ptr;
 	init_dsc(&DSC, VOLTAGE_PERIOD_TICKS, TEMP_PERIOD_TICKS);
 	init_channels(CHANNELS, &DSC.state, &tim->Instance->CNT);
-//	init_adc_dma(hadc1_ptr, ADC1_BUF, ADC1_BUF_LEN*2);
-//	init_adc_dma(hadc3_ptr, ADC3_BUF, ADC3_BUF_LEN*2);
+	init_adc_dma(hadc1_ptr, ADC1_BUF, ADC1_BUF_LEN*2);
+	init_adc_dma(hadc3_ptr, ADC3_BUF, ADC3_BUF_LEN*2);
 	init_ring_buffer_static(ADC1_BUF_LEN, &ADC1_RING_BUF_1, ADC1_BUF);
 	init_ring_buffer_static(ADC3_BUF_LEN, &ADC3_RING_BUF_1, ADC3_BUF);
 	init_ring_buffer_static(ADC1_BUF_LEN, &ADC1_RING_BUF_2, ADC1_BUF+ADC1_BUF_LEN);
 	init_ring_buffer_static(ADC3_BUF_LEN, &ADC3_RING_BUF_2, ADC3_BUF+ADC3_BUF_LEN);
 	init_led_pattern(&FAULT_LED, &tim->Instance->CNT, 0, 0);
 	init_led_pattern(&STATUS_LED, &tim->Instance->CNT, 0, 0);
+	HAL_TIM_Base_Start(tim);
 }
 
 
@@ -99,6 +106,21 @@ void main_loop() {
 	update_diagnostics_queue(&DSC);
 	update_diagnostics(CHANNELS, &DSC);
 	update_all_channels();
+	if(HAL_GetTick() % 1000 == 0) {
+		char msg[80];
+		sprintf(msg, "%4d %4d %4d %4d %4d %4d %4d %4d %4d %4d\n",
+				CHANNELS[0].adc.adc_reading,
+				CHANNELS[1].adc.adc_reading,
+				CHANNELS[2].adc.adc_reading,
+				CHANNELS[3].adc.adc_reading,
+				CHANNELS[4].adc.adc_reading,
+				CHANNELS[5].adc.adc_reading,
+				CHANNELS[6].adc.adc_reading,
+				CHANNELS[7].adc.adc_reading,
+				CHANNELS[8].adc.adc_reading,
+				CHANNELS[9].adc.adc_reading);
+		print_uart(huart, msg);
+	}
 }
 
 /*

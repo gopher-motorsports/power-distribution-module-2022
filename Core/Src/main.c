@@ -84,7 +84,6 @@ void task_gcan_hw(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -103,10 +102,10 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  // MX_GPIO_Init();
+  MX_GPIO_Init();
   // Turn all LEDs on so that if there's an issue with the clock we know
-  // init_leds();
-  //set_all_leds(TRUE, TRUE, TRUE);
+  init_leds();
+  set_all_leds(TRUE, TRUE, TRUE);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -130,7 +129,7 @@ int main(void)
   // || Initialization ||
   // ====================
 
-  init_pdm(&htim2, &hadc1, &hadc3);
+  init_pdm(&htim2, &hadc1, &hadc3, &huart2);
   init_gcan(&hcan1);
 
   /* USER CODE END 2 */
@@ -277,7 +276,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_15CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -399,7 +398,7 @@ static void MX_ADC3_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_15CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -767,7 +766,7 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-	//adc_interrupt(hadc, FALSE);
+	adc_interrupt(hadc, FALSE);
 }
 
 /* USER CODE END 4 */

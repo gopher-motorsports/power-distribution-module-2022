@@ -82,7 +82,7 @@ void update_channel_fuse_interrupt(Channel* channel, U16 measurement) {
 		// If the switch is enabled and we're in current mode
 		if(channel->hw_switch.state == SWITCH_ENABLED) {
 			// Check switch fast blow
-			if(measurement >= MAX_ADC_READING ||
+			if(measurement >= ( MAX_ADC_READING - MAX_ADC_MARGIN ) ||
 				calculate_i_sns(measurement)*CURRENT_SENSE_RATIO >= channel->fuse.max_current) {
 				channel_blow_fuse(channel);
 			}
@@ -155,43 +155,52 @@ boolean update_channel_read_buffer(Channel* channel) {
 
 	channel->hw_switch.i_sns = calculate_i_sns(channel->adc.adc_reading);
 
-	if(*channel->diagnostic_state == DIAGNOSTIC_CURRENT && channel->hw_switch.state) {
-		// Iswitch=Isns*CURRENT_SENSE_RATIO
-		channel->readings.current = CURRENT_SENSE_RATIO*channel->hw_switch.i_sns;
+	if(channel->adc.filtered_adc_buffer.item_count == 0) {
+		channel->readings.current = 0;
+		channel->readings.temp = 0;
+		channel->readings.voltage = 0;
+		return FALSE;
+	}
+
+	if(*channel->diagnostic_state == DIAGNOSTIC_CURRENT) {
+		if(channel->hw_switch.state) {
+			// Iswitch=Isns*CURRENT_SENSE_RATIO
+			channel->readings.current = CURRENT_SENSE_RATIO*channel->hw_switch.i_sns/MICROAMPS_PER_MILLIAMP;
+		} else {
+			channel->readings.current = 0;
+		}
 	}
 
 	if(*channel->diagnostic_state == DIAGNOSTIC_TEMP) {
 		// Equation for switch temperature is
 		// Temp = (Isns-0.85)*TEMPERATURE_SENSE_RATIO+25C
-		channel->readings.temp = (channel->hw_switch.i_sns-0.85)*TEMPERATURE_SENSE_RATIO+25; // @suppress("Avoid magic numbers")
+		channel->readings.temp = (channel->hw_switch.i_sns/MICROAMPS_PER_MILLIAMP-0.85)*TEMPERATURE_SENSE_RATIO+25; // @suppress("Avoid magic numbers")
 	}
 
 	if(*channel->diagnostic_state == DIAGNOSTIC_VOLTAGE) {
 		// Equation for switch voltage on supply side is
 		// Voltage=Isns*VOLTAGE_SENSE_RATIO
-		channel->readings.voltage = channel->hw_switch.i_sns*VOLTAGE_SENSE_RATIO;
+		channel->readings.voltage = channel->hw_switch.i_sns/MICROAMPS_PER_MILLIAMP*VOLTAGE_SENSE_RATIO;
 	}
 
-	return channel->adc.adc_reading >= MAX_ADC_READING;
+	return channel->adc.adc_reading >= ( MAX_ADC_READING - MAX_ADC_MARGIN );
 }
 
 U16 calculate_i_sns(U16 adc_reading) {
 	// Equation to calculate SNS current (in milliamperes) from ADC reading is
 	// Isns = (1000mA/A)*(MAX_ADC_VOLTAGE(ADC/MAX_ADC_READING))/SNS_SHUNT_RESISTANCE_OHMS
-	return (MILLIAMPS_PER_AMP*MAX_ADC_VOLTAGE*adc_reading)/(MAX_ADC_READING*SNS_SHUNT_RESISTANCE_OHMS);
+	return (MICROAMPS_PER_AMP*MAX_ADC_VOLTAGE*adc_reading)/(MAX_ADC_READING*SNS_SHUNT_RESISTANCE_OHMS);
 }
 
 void update_channel_switch(Channel* channel) {
 
 	update_channel_timing(channel, 0);
 
-	if(!update_hw_open_load(channel)) {
-		return;
-	}
+	update_hw_open_load(channel);
 
 	// Make sure we checked open load before we enable the switch
-	if(!channel->hw_switch.state &&channel->hw_switch.set && !channel->hw_switch.no_load) {
-		HAL_GPIO_WritePin(channel->hw_switch.en_port, channel->hw_switch.en_pin, SET);
+	if(!channel->hw_switch.state && channel->hw_switch.set && !channel->hw_switch.no_load) {
+		//HAL_GPIO_WritePin(channel->hw_switch.en_port, channel->hw_switch.en_pin, SET);
 		channel->hw_switch.state = SWITCH_ENABLED;
 		update_channel_timing(channel, T_SNS_EN_ON);
 	} else if(channel->hw_switch.state && !channel->hw_switch.set) {
@@ -224,7 +233,7 @@ void update_channel_timing(Channel* channel, U32 delay_micros) {
 	*micros_left -= time_micros - *micros_last;
 	*micros_left = (*micros_left > delay_micros) ? *micros_left : delay_micros;
 	*micros_last = time_micros;
-	*micros_left = *micros_left < 0 ? 0 : *micros_left;
+	*micros_left = ((S32)*micros_left) < 0 ? 0 : *micros_left;
 
 	if(was_invalid && *micros_left == 0) {
 		ring_buffer_clear(&channel->adc.filtered_adc_buffer);
@@ -235,8 +244,9 @@ void update_channel_timing(Channel* channel, U32 delay_micros) {
 
 boolean update_hw_open_load(Channel* channel) {
 	if(*channel->diagnostic_state == DIAGNOSTIC_OL_STB && !channel->hw_switch.state) {
-		channel->hw_switch.no_load = channel->hw_switch.i_sns >= SNS_FAULT_HIGH_CURRENT_MILLIAMPERES
-				|| channel->adc.adc_reading >= MAX_ADC_READING;
+		channel->hw_switch.no_load = channel->hw_switch.i_sns >= SNS_FAULT_HIGH_CURRENT_MICROAMPERES
+				|| channel->adc.adc_reading >= ( MAX_ADC_READING - MAX_ADC_MARGIN )
+				|| channel->adc.filtered_adc_buffer.item_count == 0;
 		return TRUE;
 	} else {
 		return FALSE;
